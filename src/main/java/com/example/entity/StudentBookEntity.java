@@ -15,7 +15,7 @@ public class StudentBookEntity {
     @JoinColumn(name = "student_id", insertable = false, updatable = false)
     private StudentEntity student;
 
-    @Column(name = "bookId")
+    @Column(name = "book_id")
     private Integer bookId;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "book_id", insertable = false, updatable = false)
