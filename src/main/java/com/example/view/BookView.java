@@ -1,11 +1,16 @@
 package com.example.view;
 
 import com.example.dto.book.BookDto;
+import com.example.dto.book.BookUpdateDto;
 import com.example.service.BookService;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
@@ -61,6 +66,61 @@ public class BookView extends VerticalLayout {
         grid.addColumn(BookDto::getTitle).setHeader("Title");
         grid.addColumn(BookDto::getAuthor).setHeader("Author");
         grid.addColumn(BookDto::getPublishedYear).setHeader("Published Year");
+        grid.addComponentColumn(s -> {
+
+            // UPDATE
+            Button updateBtn = new Button("Edit Book");
+            updateBtn.addThemeVariants(ButtonVariant.LUMO_WARNING);
+            updateBtn.addClickListener(listener -> {
+                ConfirmDialog confirmDialog = new ConfirmDialog();
+                confirmDialog.setHeader("Write Fields Here");
+
+                TextField editTitle = new TextField("Title");
+                TextField editAuthor = new TextField("Author");
+                TextField editPublishedYear = new TextField("Published Year");
+
+                editAuthor.setValue(s.getAuthor());
+                editPublishedYear.setValue(s.getPublishedYear());
+                editTitle.setValue(s.getTitle());
+                confirmDialog.add(editTitle, editAuthor, editPublishedYear);
+                confirmDialog.addConfirmListener(e -> {
+                    Boolean update = bookService.update(new BookUpdateDto(s.getId(), editTitle.getValue(), editAuthor.getValue(), editPublishedYear.getValue()));
+                    if (!update){
+                        Notification.show("Update Failed").setPosition(Notification.Position.TOP_CENTER);
+                    }else{
+                        grid.setItems(bookService.getAll());
+                        Notification.show("Book Edited Successfully").setPosition(Notification.Position.TOP_CENTER);
+                    }
+                });
+                confirmDialog.open();
+            });
+
+            // DELETE
+            Button deleteBtn = new Button("Delete Book");
+            deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+            deleteBtn.addClickListener(listener -> {
+                ConfirmDialog confirmDialog = new ConfirmDialog();
+                confirmDialog.setHeader("Delete Book");
+                confirmDialog.setText("Are you sure you want to delete this book?");
+
+                confirmDialog.setCancelable(true);
+                confirmDialog.setCancelText("Cancel");
+
+                confirmDialog.addConfirmListener(e -> {
+                    Boolean delete = bookService.delete(s.getId());
+                    if (!delete){
+                        Notification.show("Delete Failed").setPosition(Notification.Position.TOP_CENTER);
+                    }else{
+                        grid.setItems(bookService.getAll());
+                        Notification.show("Book Deleted Successfully").setPosition(Notification.Position.TOP_CENTER);
+                    }
+                });
+                confirmDialog.open();
+            });
+            HorizontalLayout btnLayout = new HorizontalLayout(updateBtn, deleteBtn);
+
+            return btnLayout;
+        }).setHeader("#");
         add(grid);
     }
 }

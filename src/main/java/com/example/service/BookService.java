@@ -1,6 +1,7 @@
 package com.example.service;
 
 import com.example.dto.book.BookDto;
+import com.example.dto.book.BookUpdateDto;
 import com.example.entity.BookEntity;
 import com.example.repository.BookRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,5 +37,28 @@ public class BookService {
             response.add(new BookDto(entity.getId(), entity.getTitle(), entity.getAuthor(), entity.getPublishYear()));
         });
         return response;
+    }
+
+    public Boolean update(BookUpdateDto dto) {
+        Optional<BookEntity> optional = bookRepository.findById(dto.getId());
+        if (optional.isEmpty()){
+            return false;
+        }
+        BookEntity entity = optional.get();
+        entity.setTitle(dto.getNewTitle());
+        entity.setAuthor(dto.getNewAuthor());
+        entity.setPublishYear(dto.getNewPublishedYear());
+        bookRepository.save(entity);
+        return true;
+    }
+
+    public Boolean delete(Integer id) {
+        Optional<BookEntity> optional = bookRepository.findById(id);
+        if (optional.isEmpty()){
+            return false;
+        }
+        optional.get().setVisible(false);
+        bookRepository.save(optional.get());
+        return true;
     }
 }
