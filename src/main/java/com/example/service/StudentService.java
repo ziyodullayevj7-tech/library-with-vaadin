@@ -63,4 +63,8 @@ public class StudentService {
         studentRepository.save(entity);
         return true;
     }
+
+    public Optional<StudentDto> getById(Integer id) {
+        return studentRepository.getById(id).map(this::toDto);
+    }
 }
