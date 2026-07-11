@@ -18,4 +18,6 @@ public class BookDto {
         this.author = author;
         this.publishedYear = publishedYear;
     }
+
+    public BookDto() {}
 }
