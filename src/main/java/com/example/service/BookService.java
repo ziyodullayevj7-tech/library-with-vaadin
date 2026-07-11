@@ -30,12 +30,10 @@ public class BookService {
         Optional<List<BookEntity>> optional = bookRepository.getAllByVisibleIsTrue(Boolean.TRUE);
         if (optional.isEmpty()){
             System.out.println("No books found");
+        }else{
+            List<BookEntity> entities = optional.get();
+            entities.forEach(entity -> response.add(new BookDto(entity.getId(), entity.getTitle(), entity.getAuthor(), entity.getPublishYear())));
         }
-
-        List<BookEntity> entities = optional.get();
-        entities.forEach(entity -> {
-            response.add(new BookDto(entity.getId(), entity.getTitle(), entity.getAuthor(), entity.getPublishYear()));
-        });
         return response;
     }
 
