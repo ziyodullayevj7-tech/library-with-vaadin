@@ -1,10 +1,12 @@
 package com.example.dto.student;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@AllArgsConstructor
 public class StudentDto {
     private Integer id;
     private String name;
