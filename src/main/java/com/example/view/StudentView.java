@@ -13,6 +13,8 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import java.util.Optional;
+
 
 @Route("/student")
 @PageTitle("Student CRUD")
@@ -24,10 +26,11 @@ public class StudentView extends VerticalLayout {
     public StudentView(StudentService studentService) {
         this.studentService = studentService;
         addForm();
+        getByIdForm();
         addGrid();
     }
 
-    public void addForm(){
+    public void addForm() {
         TextField nameField = new TextField("Name");
         TextField surnameField = new TextField("Surname");
         TextField phoneField = new TextField("Phone number");
@@ -40,7 +43,7 @@ public class StudentView extends VerticalLayout {
 
             studentService.create(new StudentDto(name, surname, phone));
 
-            if (studentService.getAll().isPresent()){
+            if (studentService.getAll().isPresent()) {
                 grid.setItems(studentService.getAll().get());
             }
 
@@ -57,8 +60,8 @@ public class StudentView extends VerticalLayout {
         add(addBtn);
     }
 
-    public void addGrid(){
-        if (studentService.getAll().isPresent()){
+    public void addGrid() {
+        if (studentService.getAll().isPresent()) {
             grid.setItems(studentService.getAll().get());
             grid.addColumn(StudentDto::getName).setHeader("Name");
             grid.addColumn(StudentDto::getSurname).setHeader("Surname");
@@ -84,7 +87,7 @@ public class StudentView extends VerticalLayout {
                         Boolean update = studentService.update(new StudentDto(s.getId(), editName.getValue(), editSurname.getValue(), editPhone.getValue(), s.getCreatedDate()));
                         if (!update) {
                             Notification.show("Update Failed").setPosition(Notification.Position.TOP_CENTER);
-                        }else {
+                        } else {
                             grid.setItems(studentService.getAll().get());
                             Notification.show("Student Edited Successfully").setPosition(Notification.Position.TOP_CENTER);
                         }
@@ -107,7 +110,7 @@ public class StudentView extends VerticalLayout {
                         Boolean delete = studentService.delete(s.getId());
                         if (!delete) {
                             Notification.show("Delete Failed").setPosition(Notification.Position.TOP_CENTER);
-                        }else {
+                        } else {
                             grid.setItems(studentService.getAll().get());
                             Notification.show("Student Deleted Successfully").setPosition(Notification.Position.TOP_CENTER);
                         }
@@ -120,5 +123,31 @@ public class StudentView extends VerticalLayout {
         }
 
         add(grid);
+    }
+
+    public void getByIdForm() {
+        Button getBtn = new Button("Get Student");
+        getBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        getBtn.addClickListener(event -> {
+            ConfirmDialog confirmDialog = new ConfirmDialog();
+            confirmDialog.setHeader("Get any student with id");
+
+            TextField idField = new TextField("Id");
+            confirmDialog.add(idField);
+            confirmDialog.addConfirmListener(e -> {
+                Optional<StudentDto> optional = studentService.getById(Integer.parseInt(idField.getValue()));
+                if (optional.isEmpty()) {
+                    Notification.show("Student Not Found").setPosition(Notification.Position.TOP_CENTER);
+                } else {
+                    StudentDto dto = optional.get();
+                    Notification.show(String.format(
+                            "Id: %d, Name: %s, Surname: %s, Phone: %s",
+                            dto.getId(), dto.getName(), dto.getSurname(), dto.getPhoneNumber()
+                    ));
+                }
+            });
+            confirmDialog.open();
+        });
+        add(getBtn);
     }
 }
