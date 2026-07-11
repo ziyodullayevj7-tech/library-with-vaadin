@@ -59,4 +59,12 @@ public class BookService {
         bookRepository.save(optional.get());
         return true;
     }
+
+    public Optional<BookDto> getById(Integer id) {
+        return bookRepository.getById(id).map(this::toDto);
+    }
+
+    public BookDto toDto(BookEntity entity) {
+        return new BookDto(entity.getId(), entity.getTitle(), entity.getAuthor(), entity.getPublishYear());
+    }
 }
