@@ -8,7 +8,6 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -16,6 +15,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+import java.util.Optional;
 
 
 @Route("/book")
@@ -30,9 +30,11 @@ public class BookView extends VerticalLayout {
         this.bookService = bookService;
         add(new H1("Book List"));
         addForm();
+        getByIdForm();
         addGrid();
     }
-    public void addForm(){
+
+    public void addForm() {
         TextField titleField = new TextField("Title");
         TextField authorField = new TextField("Author");
         TextField publishedYearField = new TextField("Published Year");
@@ -60,7 +62,33 @@ public class BookView extends VerticalLayout {
         add(addBtn);
     }
 
-    public void addGrid(){
+    public void getByIdForm() {
+        Button getBtn = new Button("Get Book");
+        getBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        getBtn.addClickListener(listener -> {
+            ConfirmDialog confirmDialog = new ConfirmDialog();
+            confirmDialog.setHeader("Get any book with id");
+
+            TextField idField = new TextField("Id");
+            confirmDialog.add(idField);
+            confirmDialog.addConfirmListener(event -> {
+                Optional<BookDto> optional = bookService.getById(Integer.parseInt(idField.getValue()));
+                if (optional.isEmpty()) {
+                    Notification.show("Book Not Found");
+                } else {
+                    BookDto dto = optional.get();
+                    Notification.show(String.format(
+                            "Id: %d, Title: %s, Author: %s, Year: %s",
+                            dto.getId(), dto.getTitle(), dto.getAuthor(), dto.getPublishedYear()
+                    ));
+                }
+            });
+            confirmDialog.open();
+        });
+        add(getBtn);
+    }
+
+    public void addGrid() {
         grid.setItems(bookService.getAll());
 
         grid.addColumn(BookDto::getTitle).setHeader("Title");
@@ -85,9 +113,9 @@ public class BookView extends VerticalLayout {
                 confirmDialog.add(editTitle, editAuthor, editPublishedYear);
                 confirmDialog.addConfirmListener(e -> {
                     Boolean update = bookService.update(new BookUpdateDto(s.getId(), editTitle.getValue(), editAuthor.getValue(), editPublishedYear.getValue()));
-                    if (!update){
+                    if (!update) {
                         Notification.show("Update Failed").setPosition(Notification.Position.TOP_CENTER);
-                    }else{
+                    } else {
                         grid.setItems(bookService.getAll());
                         Notification.show("Book Edited Successfully").setPosition(Notification.Position.TOP_CENTER);
                     }
@@ -108,9 +136,9 @@ public class BookView extends VerticalLayout {
 
                 confirmDialog.addConfirmListener(e -> {
                     Boolean delete = bookService.delete(s.getId());
-                    if (!delete){
+                    if (!delete) {
                         Notification.show("Delete Failed").setPosition(Notification.Position.TOP_CENTER);
-                    }else{
+                    } else {
                         grid.setItems(bookService.getAll());
                         Notification.show("Book Deleted Successfully").setPosition(Notification.Position.TOP_CENTER);
                     }

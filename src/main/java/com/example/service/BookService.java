@@ -34,7 +34,7 @@ public class BookService {
 
         List<BookEntity> entities = optional.get();
         entities.forEach(entity -> {
-            response.add(new BookDto(entity.getId(), entity.getTitle(), entity.getAuthor(), entity.getPublishYear()));
+            response.add(toDto(entity));
         });
         return response;
     }
@@ -60,5 +60,13 @@ public class BookService {
         optional.get().setVisible(false);
         bookRepository.save(optional.get());
         return true;
+    }
+
+    public Optional<BookDto> getById(Integer id) {
+        return bookRepository.getById(id).map(this::toDto);
+    }
+
+    public BookDto toDto(BookEntity entity) {
+        return new BookDto(entity.getId(), entity.getTitle(), entity.getAuthor(), entity.getPublishYear());
     }
 }
