@@ -24,9 +24,6 @@ public class StudentService {
         entity.setPhone(studentDto.getPhoneNumber());
         entity.setCreatedDate(LocalDateTime.now());
         studentRepository.save(entity);
-
-        studentDto.setCreatedDate(entity.getCreatedDate().toString());
-        studentDto.setId(entity.getId());
     }
 
     public Optional<List<StudentDto>> getAll() {
@@ -42,7 +39,28 @@ public class StudentService {
     }
 
     public StudentDto toDto(StudentEntity entity) {
-        StudentDto dto = new StudentDto(entity.getName(), entity.getSurname(), entity.getPhone());
+        StudentDto dto = new StudentDto(entity.getId(), entity.getName(), entity.getSurname(), entity.getPhone(), entity.getCreatedDate().toString());
         return dto;
+    }
+
+    public Boolean update(StudentDto dto) {
+        Optional<StudentEntity> optional = studentRepository.getById(dto.getId());
+        if (optional.isEmpty()) return false;
+        StudentEntity entity = optional.get();
+        entity.setName(dto.getName());
+        entity.setSurname(dto.getSurname());
+        entity.setPhone(dto.getPhoneNumber());
+        entity.setCreatedDate(LocalDateTime.now());
+        studentRepository.save(entity);
+        return true;
+    }
+
+    public Boolean delete(Integer id) {
+        Optional<StudentEntity> optional = studentRepository.getById(id);
+        if (optional.isEmpty()) return false;
+        StudentEntity entity = optional.get();
+        entity.setVisible(false);
+        studentRepository.save(entity);
+        return true;
     }
 }

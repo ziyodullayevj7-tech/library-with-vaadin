@@ -3,8 +3,11 @@ package com.example.view;
 import com.example.dto.student.StudentDto;
 import com.example.service.StudentService;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
@@ -60,7 +63,62 @@ public class StudentView extends VerticalLayout {
             grid.addColumn(StudentDto::getName).setHeader("Name");
             grid.addColumn(StudentDto::getSurname).setHeader("Surname");
             grid.addColumn(StudentDto::getPhoneNumber).setHeader("Phone");
+            grid.addComponentColumn(s -> {
+                //UPDATE
+                Button updateBtn = new Button("Edit");
+                updateBtn.addThemeVariants(ButtonVariant.LUMO_WARNING);
+                updateBtn.addClickListener(event -> {
+                    ConfirmDialog confirmDialog = new ConfirmDialog();
+                    confirmDialog.setHeader("Write Fields Here");
+
+                    TextField editName = new TextField("Name");
+                    TextField editSurname = new TextField("Surname");
+                    TextField editPhone = new TextField("Phone number");
+
+                    editName.setValue(s.getName());
+                    editSurname.setValue(s.getSurname());
+                    editPhone.setValue(s.getPhoneNumber());
+
+                    confirmDialog.add(editName, editSurname, editPhone);
+                    confirmDialog.addConfirmListener(e -> {
+                        Boolean update = studentService.update(new StudentDto(s.getId(), editName.getValue(), editSurname.getValue(), editPhone.getValue(), s.getCreatedDate()));
+                        if (!update) {
+                            Notification.show("Update Failed").setPosition(Notification.Position.TOP_CENTER);
+                        }else {
+                            grid.setItems(studentService.getAll().get());
+                            Notification.show("Student Edited Successfully").setPosition(Notification.Position.TOP_CENTER);
+                        }
+                    });
+                    confirmDialog.open();
+                });
+
+                //DELETE
+                Button deleteBtn = new Button("Delete");
+                deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+                deleteBtn.addClickListener(event -> {
+                    ConfirmDialog confirmDialog = new ConfirmDialog();
+                    confirmDialog.setHeader("Delete Student");
+                    confirmDialog.setText("Are you sure you want to delete this?");
+
+                    confirmDialog.setCancelable(true);
+                    confirmDialog.setCancelText("Cancel");
+
+                    confirmDialog.addConfirmListener(e -> {
+                        Boolean delete = studentService.delete(s.getId());
+                        if (!delete) {
+                            Notification.show("Delete Failed").setPosition(Notification.Position.TOP_CENTER);
+                        }else {
+                            grid.setItems(studentService.getAll().get());
+                            Notification.show("Student Deleted Successfully").setPosition(Notification.Position.TOP_CENTER);
+                        }
+                    });
+                    confirmDialog.open();
+                });
+
+                return new HorizontalLayout(updateBtn, deleteBtn);
+            }).setHeader("#");
         }
+
         add(grid);
     }
 }
