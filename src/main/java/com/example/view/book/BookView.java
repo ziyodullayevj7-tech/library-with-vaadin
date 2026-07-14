@@ -24,7 +24,7 @@ import java.util.Optional;
 
 
 @Route("/book")
-@PageTitle("Book Create")
+@PageTitle("Book CRUD")
 public class BookView extends VerticalLayout {
     private final BookService bookService;
 
@@ -37,9 +37,7 @@ public class BookView extends VerticalLayout {
         Button goToBookFormPageBtn = new Button("");
         goToBookFormPageBtn.setIcon(VaadinIcon.PLUS.create());
         goToBookFormPageBtn.setThemeVariants(ButtonVariant.LUMO_LARGE,  ButtonVariant.LUMO_PRIMARY,   ButtonVariant.LUMO_SUCCESS);
-        goToBookFormPageBtn.addClickListener(e -> {
-            UI.getCurrent().navigate(BookFormView.class);
-        });
+        goToBookFormPageBtn.addClickListener(e -> UI.getCurrent().navigate(BookFormView.class));
         HorizontalLayout buttonLayout = new HorizontalLayout(goToBookFormPageBtn);
         buttonLayout.setWidthFull();
         buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
@@ -113,9 +111,7 @@ public class BookView extends VerticalLayout {
                 });
                 confirmDialog.open();
             });
-            HorizontalLayout btnLayout = new HorizontalLayout(updateBtn, deleteBtn);
-
-            return btnLayout;
+            return new HorizontalLayout(updateBtn, deleteBtn);
         }).setHeader("#");
         add(grid);
     }

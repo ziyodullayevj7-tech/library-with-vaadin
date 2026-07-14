@@ -1,18 +1,25 @@
-package com.example.view;
+package com.example.view.student;
 
 import com.example.dto.student.StudentDto;
 import com.example.service.StudentService;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Route;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -25,42 +32,23 @@ public class StudentView extends VerticalLayout {
 
     public StudentView(StudentService studentService) {
         this.studentService = studentService;
-        addForm();
-        getByIdForm();
+        add(new H1("Student List"));
+
+        Button goToStudentFormPageBtn = new Button("");
+        goToStudentFormPageBtn.setIcon(VaadinIcon.PLUS.create());
+        goToStudentFormPageBtn.setThemeVariants(ButtonVariant.LUMO_LARGE,  ButtonVariant.LUMO_PRIMARY,   ButtonVariant.LUMO_SUCCESS);
+        goToStudentFormPageBtn.addClickListener(e -> UI.getCurrent().navigate(StudentFormView.class));
+
+        HorizontalLayout buttonLayout = new HorizontalLayout(goToStudentFormPageBtn);
+        buttonLayout.setWidthFull();
+        buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
+        add(buttonLayout);
         addGrid();
     }
 
-    public void addForm() {
-        TextField nameField = new TextField("Name");
-        TextField surnameField = new TextField("Surname");
-        TextField phoneField = new TextField("Phone number");
-
-        Button addBtn = new Button("Add Student");
-        addBtn.addClickListener(event -> {
-            String name = nameField.getValue();
-            String surname = surnameField.getValue();
-            String phone = phoneField.getValue();
-
-            studentService.create(new StudentDto(name, surname, phone));
-
-            if (studentService.getAll().isPresent()) {
-                grid.setItems(studentService.getAll().get());
-            }
-
-            Notification.show("Student Created").setPosition(Notification.Position.TOP_CENTER);
-
-            nameField.clear();
-            surnameField.clear();
-            phoneField.clear();
-        });
-
-        add(nameField);
-        add(surnameField);
-        add(phoneField);
-        add(addBtn);
-    }
-
     public void addGrid() {
+        refreshGrid();
+
         if (studentService.getAll().isPresent()) {
             grid.setItems(studentService.getAll().get());
             grid.addColumn(StudentDto::getName).setHeader("Name");
@@ -70,30 +58,8 @@ public class StudentView extends VerticalLayout {
                 //UPDATE
                 Button updateBtn = new Button("Edit");
                 updateBtn.addThemeVariants(ButtonVariant.LUMO_WARNING);
-                updateBtn.addClickListener(event -> {
-                    ConfirmDialog confirmDialog = new ConfirmDialog();
-                    confirmDialog.setHeader("Write Fields Here");
-
-                    TextField editName = new TextField("Name");
-                    TextField editSurname = new TextField("Surname");
-                    TextField editPhone = new TextField("Phone number");
-
-                    editName.setValue(s.getName());
-                    editSurname.setValue(s.getSurname());
-                    editPhone.setValue(s.getPhoneNumber());
-
-                    confirmDialog.add(editName, editSurname, editPhone);
-                    confirmDialog.addConfirmListener(e -> {
-                        Boolean update = studentService.update(new StudentDto(s.getId(), editName.getValue(), editSurname.getValue(), editPhone.getValue(), s.getCreatedDate()));
-                        if (!update) {
-                            Notification.show("Update Failed").setPosition(Notification.Position.TOP_CENTER);
-                        } else {
-                            grid.setItems(studentService.getAll().get());
-                            Notification.show("Student Edited Successfully").setPosition(Notification.Position.TOP_CENTER);
-                        }
-                    });
-                    confirmDialog.open();
-                });
+                updateBtn.setIcon(VaadinIcon.PLUS.create());
+                updateBtn.addClickListener(event -> UI.getCurrent().navigate(StudentFormView.class, new QueryParameters(Map.of("id", List.of(String.valueOf(s.getId()))))));
 
                 //DELETE
                 Button deleteBtn = new Button("Delete");
@@ -111,17 +77,15 @@ public class StudentView extends VerticalLayout {
                         if (!delete) {
                             Notification.show("Delete Failed").setPosition(Notification.Position.TOP_CENTER);
                         } else {
-                            grid.setItems(studentService.getAll().get());
+                            refreshGrid();
                             Notification.show("Student Deleted Successfully").setPosition(Notification.Position.TOP_CENTER);
                         }
                     });
                     confirmDialog.open();
                 });
-
                 return new HorizontalLayout(updateBtn, deleteBtn);
             }).setHeader("#");
         }
-
         add(grid);
     }
 
@@ -149,5 +113,13 @@ public class StudentView extends VerticalLayout {
             confirmDialog.open();
         });
         add(getBtn);
+    }
+
+    public void refreshGrid(){
+        Optional<List<StudentDto>> optional = studentService.getAll();
+        if (optional.isEmpty()){
+            return;
+        }
+        grid.setItems(optional.get());
     }
 }
